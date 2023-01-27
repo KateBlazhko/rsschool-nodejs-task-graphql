@@ -36,6 +36,12 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
       },
     },
     async function (request, reply): Promise<ProfileEntity> {
+      const profile = await fastify.db.profiles.findOne({key: 'userId', equals: request.body.userId})
+      const user = await fastify.db.users.findOne({key: 'id', equals: request.body.userId})
+      const memberTypeId = await fastify.db.memberTypes.findOne({key: 'id', equals: request.body.memberTypeId})
+
+      if (!user || profile || !memberTypeId) throw fastify.httpErrors.badRequest()
+      
       return await fastify.db.profiles.create(request.body)
     }
   );
@@ -48,7 +54,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
       },
     },
     async function (request, reply): Promise<ProfileEntity> {
-      const founded = await fastify.db.posts.findOne({key: 'id', equals: request.params.id})
+      const founded = await fastify.db.profiles.findOne({key: 'id', equals: request.params.id})
 
       if (!founded) throw fastify.httpErrors.badRequest()
 
