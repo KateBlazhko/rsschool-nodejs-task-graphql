@@ -1,16 +1,76 @@
 import { FastifyInstance } from "fastify"
+import { MemberTypeEntity } from "../utils/DB/entities/DBMemberTypes"
+import { PostEntity } from "../utils/DB/entities/DBPosts"
+import { ProfileEntity } from "../utils/DB/entities/DBProfiles"
 import { ChangeUserDTO, CreateUserDTO, UserEntity } from "../utils/DB/entities/DBUsers"
+
+type UserExtantion = UserEntity & {
+  userSubscribedTo: UserEntity[]
+}
+
+type AllDataAboutUserType = UserEntity & {
+  subscribedToUser: UserExtantion[],
+  posts: PostEntity[];
+  profile: ProfileEntity | null;
+  memberType: MemberTypeEntity | null;
+  userSubscribedTo: UserExtantion[]
+}
 
 export const getUsers = async (context: FastifyInstance): Promise<UserEntity[]> => {
   return await context.db.users.findMany()
 }
 
+const gatherAllDataAboutUsers = async (user: UserEntity, context: FastifyInstance): Promise<AllDataAboutUserType> => {
+  const profile = await context.db.profiles.findOne({key: 'userId', equals: user.id})
+
+  const subscribedToUserIdsExt: UserExtantion[] = await Promise.all(user.subscribedToUserIds.map(async (id) => {
+    const user = await getUserById(id, context)
+    const userSubscribedTo = await context.db.users.findMany({key: 'subscribedToUserIds', inArray: user.id})
+    
+    return {
+      ...user,
+      userSubscribedTo
+    }
+  }))
+
+  const userSubscribedTo = await context.db.users.findMany({key: 'subscribedToUserIds', inArray: user.id})
+  const userSubscribedToExt: UserExtantion[] = await Promise.all(userSubscribedTo.map(async (user) => {
+    const userSubscribedTo = await context.db.users.findMany({key: 'subscribedToUserIds', inArray: user.id})
+    
+    return {
+      ...user,
+      userSubscribedTo
+    }
+  }))
+
+  return {
+    ...user,
+    subscribedToUser: subscribedToUserIdsExt,
+    posts: await context.db.posts.findMany({key: 'userId', equals: user.id}),
+    profile,
+    memberType: profile ? await context.db.memberTypes.findOne({key: 'id', equals: profile?.memberTypeId}) : null,
+    userSubscribedTo: userSubscribedToExt
+  }
+}
+
+export const getAllDataAboutUsers = async (context: FastifyInstance): Promise<AllDataAboutUserType[]> => {
+  const users = await context.db.users.findMany()
+  return await Promise.all(users.map(async (user) => {
+    return await gatherAllDataAboutUsers(user, context)
+  }))
+}
+
+export const getAllDataAboutUser = async (id: string, context: FastifyInstance): Promise<AllDataAboutUserType> => {
+  const user = await getUserById(id, context)
+  return await gatherAllDataAboutUsers(user, context)
+}
+
 export const getUserById = async (id: string, context: FastifyInstance): Promise<UserEntity> => {
   const founded = await context.db.users.findOne({key: 'id', equals: id})
 
-      if (!founded) throw context.httpErrors.notFound()
+  if (!founded) throw context.httpErrors.notFound()
 
-      return founded
+  return founded
 }
 
 export const createUser = async (userDTO: CreateUserDTO, context: FastifyInstance): Promise<UserEntity> => {

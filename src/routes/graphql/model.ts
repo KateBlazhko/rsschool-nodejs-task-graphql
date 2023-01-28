@@ -25,6 +25,22 @@ export const UserType = new GraphQLObjectType({
   }),
 });
 
+export const UserTypeExt = new GraphQLObjectType({
+  name: 'UserExt',
+  fields: () => ({
+    id: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
+    ...userDTO,
+    subscribedToUserIds: {
+      type: new GraphQLList(GraphQLString),
+    },
+    userSubscribedTo: {
+      type: new GraphQLList(UserType),
+    },
+  }),
+});
+
 export const UserCreateType = new GraphQLInputObjectType({
   name: 'UserCreate',
   fields: () => ({
@@ -158,5 +174,22 @@ export const MemberTypeChangeType = new GraphQLInputObjectType({
   name: 'MemberTypeChange',
   fields: () => ({
     ...memberTypeDTO
+  }),
+});
+
+export const AllDataAboutUserType = new GraphQLObjectType({
+  name: 'AllDataAboutUser',
+  fields: () => ({
+    id: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
+    ...userDTO,
+    subscribedToUser: {
+      type: new GraphQLList(UserTypeExt),
+    },
+    posts: {type: new GraphQLList(PostType)},
+    profile: {type: ProfileType},
+    memberType: {type: MemberTypeType},
+    userSubscribedTo: {type: new GraphQLList(UserTypeExt)}
   }),
 });

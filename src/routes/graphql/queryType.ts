@@ -3,8 +3,8 @@ import { GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLString } from "g
 import { getMemberTypeById, getMemberTypes } from "../../actions/memberTypeAction";
 import { getPostById, getPosts } from "../../actions/postActions";
 import { getProfileById, getProfiles } from "../../actions/profileActons";
-import { getUserById, getUsers } from "../../actions/userActions";
-import { MemberTypeType, PostType, ProfileType, UserType } from "./model";
+import { getAllDataAboutUser, getAllDataAboutUsers, getUserById, getUsers } from "../../actions/userActions";
+import { AllDataAboutUserType, MemberTypeType, PostType, ProfileType, UserType } from "./model";
 
 export const queryType = new GraphQLObjectType({
   name: 'Query',
@@ -69,5 +69,20 @@ export const queryType = new GraphQLObjectType({
       type: new GraphQLList(MemberTypeType),
       resolve: (_source, _args, context: FastifyInstance) => getMemberTypes(context),
     },
+    allDataAboutUsers: {
+      type: new GraphQLList(AllDataAboutUserType),
+      resolve: (_source, _args, context: FastifyInstance) => getAllDataAboutUsers(context),
+    },
+    allDataAboutUser: {
+      type: AllDataAboutUserType,
+      args: {
+        id: {
+          description:
+            'User Id',
+          type: new GraphQLNonNull(GraphQLString),
+        },
+      },
+      resolve: (_source, { id }, context: FastifyInstance) => getAllDataAboutUser(id, context),
+    }
   }),
 });
