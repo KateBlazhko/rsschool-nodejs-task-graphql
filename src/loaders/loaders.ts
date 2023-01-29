@@ -1,7 +1,8 @@
 import DataLoader = require("dataloader");
 import { FastifyInstance } from "fastify";
-import { getMemberTypes } from "../actions/memberTypeAction";
-import { getProfileById } from "../actions/profileActons";
+import { getMemberTypeById} from "../actions/memberTypeAction";
+import { getPostById } from "../actions/postActions";
+import { getProfiles } from "../actions/profileActons";
 import { getUserById, getUsers } from "../actions/userActions";
 import { UserEntity } from "../utils/DB/entities/DBUsers";
 
@@ -34,7 +35,8 @@ const batchGetUserSubscribedTo = async (ids: readonly string[], context: Fastify
 }
 
 const batchGetMemberTypes = async (ids: readonly string[], context: FastifyInstance) => {
-  const memberTypes = await getMemberTypes(context)
+  // const memberTypes = await getMemberTypes(context)
+  const memberTypes = await Promise.all(ids.map(async (id) => await getMemberTypeById(id, context)))
 
   const dataMap: Record<string, UserEntity[]> = memberTypes.reduce((acc, memberType) => {
     return {
@@ -46,8 +48,9 @@ const batchGetMemberTypes = async (ids: readonly string[], context: FastifyInsta
   return ids.map((id) => dataMap[id]);
 }
 
-const batchGetProfile = async (ids: readonly string[], context: FastifyInstance) => {
-  const profiles = await Promise.all(ids.map(async (id) => await getProfileById(id, context)))
+const batchGetProfiles = async (ids: readonly string[], context: FastifyInstance) => {
+  // const profiles = await Promise.all(ids.map(async (id) => await getProfileById(id, context)))
+  const profiles = await getProfiles(context)
 
   const dataMap: Record<string, UserEntity[]> = profiles.reduce((acc, profile) => {
     return {
@@ -59,14 +62,26 @@ const batchGetProfile = async (ids: readonly string[], context: FastifyInstance)
   return ids.map((id) => dataMap[id]);
 }
 
+const batchGetPosts = async (ids: readonly string[], context: FastifyInstance) => {
+  const posts = await Promise.all(ids.map(async (id) => await getPostById(id, context)))
+  // const posts = await getPosts(context)
+
+  const dataMap: Record<string, UserEntity[]> = posts.reduce((acc, post) => {
+    return {
+      ...acc,
+      [post.id]: post
+    };
+  }, {});
+
+  return ids.map((id) => dataMap[id]);
+}
+
 export const createLoaders = (context: FastifyInstance) => {
   return {
     usersLoader: new DataLoader( async (ids: readonly string[]) => batchGetUsers(ids, context)),
     userSubscribedToLoader: new DataLoader( async (ids: readonly string[]) => batchGetUserSubscribedTo(ids, context)),
     memberTypesLoader: new DataLoader( async (ids: readonly string[]) => batchGetMemberTypes(ids, context)),
-    profilesLoader: new DataLoader( async (ids: readonly string[]) => batchGetProfile(ids, context)),
+    profilesLoader: new DataLoader( async (ids: readonly string[]) => batchGetProfiles(ids, context)),
+    postsLoader: new DataLoader( async (ids: readonly string[]) => batchGetPosts(ids, context)),
   }
 }
-
-export const createUserLoader = (context: FastifyInstance) => new DataLoader( async (ids: readonly string[]) => batchGetUsers(ids, context))
-export const createUserSubscribedToLoader = (context: FastifyInstance) => new DataLoader( async (ids: readonly string[]) => batchGetUserSubscribedTo(ids, context))

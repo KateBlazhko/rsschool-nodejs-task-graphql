@@ -29,9 +29,6 @@ const gatherAllDataAboutUser = async (user: UserEntity, {
   memberTypesLoader,
   profilesLoader
 }: ContextType): Promise<AllDataAboutUserType> => {
-  // const userSubscribedToLoader = createUserSubscribedToLoader(context)
-  // const userLoader = createUserLoader(context)
-
   const profile = await profilesLoader.load(user.id)
   // const profile = await fastify.db.profiles.findOne({key: 'userId', equals: user.id})
 
