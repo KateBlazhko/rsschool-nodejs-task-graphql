@@ -6,6 +6,7 @@ import { ChangeUserDTO, CreateUserDTO, UserEntity } from "../utils/DB/entities/D
 
 type UserExtantion = UserEntity & {
   userSubscribedTo: UserEntity[]
+  subscribedToUser: UserEntity[]
 }
 
 type AllDataAboutUserType = UserEntity & {
@@ -29,6 +30,9 @@ const gatherAllDataAboutUsers = async (user: UserEntity, context: FastifyInstanc
     
     return {
       ...user,
+      subscribedToUser: await Promise.all(user.subscribedToUserIds.map(async (id) => {
+        return await getUserById(id, context)
+      })),
       userSubscribedTo
     }
   }))
@@ -39,6 +43,9 @@ const gatherAllDataAboutUsers = async (user: UserEntity, context: FastifyInstanc
     
     return {
       ...user,
+      subscribedToUser: await Promise.all(user.subscribedToUserIds.map(async (id) => {
+        return await getUserById(id, context)
+      })),
       userSubscribedTo
     }
   }))

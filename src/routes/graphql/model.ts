@@ -35,6 +35,9 @@ export const UserTypeExt = new GraphQLObjectType({
     subscribedToUserIds: {
       type: new GraphQLList(GraphQLString),
     },
+    subscribedToUser: {
+      type: new GraphQLList(UserType),
+    },
     userSubscribedTo: {
       type: new GraphQLList(UserType),
     },
