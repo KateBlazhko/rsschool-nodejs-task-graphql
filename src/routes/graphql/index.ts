@@ -1,19 +1,14 @@
 import { FastifyPluginAsyncJsonSchemaToTs } from '@fastify/type-provider-json-schema-to-ts';
-import DataLoader = require('dataloader');
 import { FastifyInstance } from 'fastify';
 import { graphql, GraphQLSchema } from 'graphql';
 import { createLoaders } from '../../loaders/loaders';
-import { MemberTypeEntity } from '../../utils/DB/entities/DBMemberTypes';
-import { UserEntity } from '../../utils/DB/entities/DBUsers';
+import { LoadersType } from '../../loaders/model';
 import { mutationType } from './mutationType';
 import { queryType } from './queryType';
 import { graphqlBodySchema } from './schema';
 
-export type ContextType = {
+export type ContextType = LoadersType & {
   fastify: FastifyInstance;
-  usersLoader: DataLoader<string, UserEntity, string>;
-  userSubscribedToLoader: DataLoader<string, UserEntity[], string>;
-  memberTypesLoader: DataLoader<string, MemberTypeEntity, string>;
 }
 
 const plugin: FastifyPluginAsyncJsonSchemaToTs = async (

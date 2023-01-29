@@ -2,7 +2,7 @@ import { GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLString } from "g
 import { ContextType } from ".";
 import { getMemberTypes } from "../../actions/memberTypeAction";
 import { getPostById, getPosts } from "../../actions/postActions";
-import { getProfileById, getProfiles } from "../../actions/profileActons";
+import { getProfiles } from "../../actions/profileActons";
 import { getAllDataAboutUser, getAllDataAboutUsers, getUsers } from "../../actions/userActions";
 import { AllDataAboutUserType, MemberTypeType, PostType, ProfileType, UserType } from "./model";
 
@@ -40,7 +40,7 @@ export const queryType = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve: (_source, { id }, {fastify}: ContextType) => getProfileById(id, fastify),
+      resolve: (_source, { id }, {profilesLoader}: ContextType) => profilesLoader.load(id),
     },
     memberType: {
       type: MemberTypeType,

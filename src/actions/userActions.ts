@@ -23,13 +23,21 @@ export const getUsers = async (context: FastifyInstance): Promise<UserEntity[]> 
 }
 
 const gatherAllDataAboutUser = async (user: UserEntity, {
-  fastify, userSubscribedToLoader, usersLoader, memberTypesLoader
+  fastify, 
+  userSubscribedToLoader, 
+  usersLoader, 
+  memberTypesLoader,
+  profilesLoader
 }: ContextType): Promise<AllDataAboutUserType> => {
   // const userSubscribedToLoader = createUserSubscribedToLoader(context)
   // const userLoader = createUserLoader(context)
 
-  const profile = await fastify.db.profiles.findOne({key: 'userId', equals: user.id})
+  const profile = await profilesLoader.load(user.id)
+  // const profile = await fastify.db.profiles.findOne({key: 'userId', equals: user.id})
+
   const memberType = profile && await memberTypesLoader.load(profile?.memberTypeId)
+  // const memberType = await fastify.db.memberTypes.findOne({key: 'id', equals: user.id})
+
 
   const subscribedToUserIdsExt: UserExtantion[] = await Promise.all(user.subscribedToUserIds.map(async (id) => {
     const user = await usersLoader.load(id)
@@ -79,7 +87,6 @@ export const getAllDataAboutUsers = async (context: ContextType): Promise<AllDat
   return await Promise.all(users.map(async (user) => {
 
     context.usersLoader.prime(user.id, user)
-    await context.userSubscribedToLoader.load(user.id)
 
     return await gatherAllDataAboutUser(user, context)
   }))
