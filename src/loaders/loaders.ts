@@ -7,7 +7,6 @@ import { getUserById, getUsers } from "../actions/userActions";
 import { UserEntity } from "../utils/DB/entities/DBUsers";
 
 const batchGetUsers = async (ids: readonly string[], context: FastifyInstance) => {
-  // const users = await getUsers(context)
   const users = await Promise.all(ids.map(async (id) => await getUserById(id, context)))
 
   const dataMap: Record<string, UserEntity> = users.reduce((acc, user) => {
@@ -35,7 +34,6 @@ const batchGetUserSubscribedTo = async (ids: readonly string[], context: Fastify
 }
 
 const batchGetMemberTypes = async (ids: readonly string[], context: FastifyInstance) => {
-  // const memberTypes = await getMemberTypes(context)
   const memberTypes = await Promise.all(ids.map(async (id) => await getMemberTypeById(id, context)))
 
   const dataMap: Record<string, UserEntity[]> = memberTypes.reduce((acc, memberType) => {
@@ -49,7 +47,6 @@ const batchGetMemberTypes = async (ids: readonly string[], context: FastifyInsta
 }
 
 const batchGetProfiles = async (ids: readonly string[], context: FastifyInstance) => {
-  // const profiles = await Promise.all(ids.map(async (id) => await getProfileById(id, context)))
   const profiles = await getProfiles(context)
 
   const dataMap: Record<string, UserEntity[]> = profiles.reduce((acc, profile) => {
@@ -64,7 +61,6 @@ const batchGetProfiles = async (ids: readonly string[], context: FastifyInstance
 
 const batchGetPosts = async (ids: readonly string[], context: FastifyInstance) => {
   const posts = await Promise.all(ids.map(async (id) => await getPostById(id, context)))
-  // const posts = await getPosts(context)
 
   const dataMap: Record<string, UserEntity[]> = posts.reduce((acc, post) => {
     return {
