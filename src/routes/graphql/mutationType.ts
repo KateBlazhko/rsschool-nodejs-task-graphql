@@ -1,5 +1,5 @@
-import { FastifyInstance } from "fastify";
 import { GraphQLNonNull, GraphQLObjectType, GraphQLString } from "graphql";
+import { ContextType } from ".";
 import { updateMemberType } from "../../actions/memberTypeAction";
 import { createPost, updatePost } from "../../actions/postActions";
 import { createProfile, updateProfile } from "../../actions/profileActons";
@@ -18,7 +18,7 @@ export const mutationType = new GraphQLObjectType({
           type: UserCreateType,
         },
       },
-      resolve: (_source, { userDTO }, context: FastifyInstance) => createUser(userDTO, context),
+      resolve: (_source, { userDTO }, {fastify}: ContextType) => createUser(userDTO, fastify),
     },
     createPost: {
       type: PostType,
@@ -29,7 +29,7 @@ export const mutationType = new GraphQLObjectType({
           type: PostCreateType,
         },
       },
-      resolve: (_source, { postDTO }, context: FastifyInstance) => createPost(postDTO, context),
+      resolve: (_source, { postDTO }, {fastify}: ContextType) => createPost(postDTO, fastify),
     },
     createProfile: {
       type: ProfileType,
@@ -40,7 +40,7 @@ export const mutationType = new GraphQLObjectType({
           type: ProfileCreateType,
         },
       },
-      resolve: (_source, { profileDTO }, context: FastifyInstance) => createProfile(profileDTO, context),
+      resolve: (_source, { profileDTO }, {fastify}: ContextType) => createProfile(profileDTO, fastify),
     },
     updateUser: {
       type: UserType,
@@ -56,7 +56,7 @@ export const mutationType = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve: (_source, { id, userDTO }, context: FastifyInstance) => updateUser(id, userDTO, context),
+      resolve: (_source, { id, userDTO }, {fastify}: ContextType) => updateUser(id, userDTO, fastify),
     },
     updatePost: {
       type: PostType,
@@ -72,7 +72,7 @@ export const mutationType = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve: (_source, { id, postDTO }, context: FastifyInstance) => updatePost(id, postDTO, context),
+      resolve: (_source, { id, postDTO }, {fastify}: ContextType) => updatePost(id, postDTO, fastify),
     },
     updateProfile: {
       type: ProfileType,
@@ -88,7 +88,7 @@ export const mutationType = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve: (_source, { id, profileDTO }, context: FastifyInstance) => updateProfile(id, profileDTO, context),
+      resolve: (_source, { id, profileDTO }, {fastify}: ContextType) => updateProfile(id, profileDTO, fastify),
     },
     updateMemberType: {
       type: MemberTypeType,
@@ -104,7 +104,7 @@ export const mutationType = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve: (_source, { id, memberTypeDTO }, context: FastifyInstance) => updateMemberType(id, memberTypeDTO, context),
+      resolve: (_source, { id, memberTypeDTO }, {fastify}: ContextType) => updateMemberType(id, memberTypeDTO, fastify),
     },
     subscribeUser: {
       type: UserType,
@@ -120,7 +120,7 @@ export const mutationType = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         }
       },
-      resolve:  (_source, { userId, subscribedId }, context: FastifyInstance) => userSubscribeTo(userId, subscribedId, context),
+      resolve:  (_source, { userId, subscribedId }, {fastify}: ContextType) => userSubscribeTo(userId, subscribedId, fastify),
     },
     unsubscribeUser: {
       type: UserType,
@@ -136,7 +136,7 @@ export const mutationType = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         }
       },
-      resolve:  (_source, { userId, unsubscribedId }, context: FastifyInstance) => userUnsubscribeTo(userId, unsubscribedId, context),
+      resolve:  (_source, { userId, unsubscribedId }, {fastify}: ContextType) => userUnsubscribeTo(userId, unsubscribedId, fastify),
     }
   }),
 });

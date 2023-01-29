@@ -1,9 +1,9 @@
-import { FastifyInstance } from "fastify";
 import { GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLString } from "graphql";
-import { getMemberTypeById, getMemberTypes } from "../../actions/memberTypeAction";
+import { ContextType } from ".";
+import { getMemberTypes } from "../../actions/memberTypeAction";
 import { getPostById, getPosts } from "../../actions/postActions";
 import { getProfileById, getProfiles } from "../../actions/profileActons";
-import { getAllDataAboutUser, getAllDataAboutUsers, getUserById, getUsers } from "../../actions/userActions";
+import { getAllDataAboutUser, getAllDataAboutUsers, getUsers } from "../../actions/userActions";
 import { AllDataAboutUserType, MemberTypeType, PostType, ProfileType, UserType } from "./model";
 
 export const queryType = new GraphQLObjectType({
@@ -18,7 +18,7 @@ export const queryType = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve: (_source, { id }, context: FastifyInstance) => getUserById(id, context),
+      resolve: (_source, { id }, {usersLoader}: ContextType) => usersLoader.load(id),
     },
     post: {
       type: PostType,
@@ -29,7 +29,7 @@ export const queryType = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve: (_source, { id }, context: FastifyInstance) => getPostById(id, context),
+      resolve: (_source, { id }, {fastify}: ContextType) => getPostById(id, fastify),
     },
     profile: {
       type: ProfileType,
@@ -40,7 +40,7 @@ export const queryType = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve: (_source, { id }, context: FastifyInstance) => getProfileById(id, context),
+      resolve: (_source, { id }, {fastify}: ContextType) => getProfileById(id, fastify),
     },
     memberType: {
       type: MemberTypeType,
@@ -51,27 +51,27 @@ export const queryType = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve: (_source, { id }, context: FastifyInstance) => getMemberTypeById(id, context),
+      resolve: (_source, { id }, {memberTypesLoader}: ContextType) => memberTypesLoader.load(id),
     },
     users: {
       type: new GraphQLList(UserType),
-      resolve: (_source, _args, context: FastifyInstance) => getUsers(context),
+      resolve: (_source, _args, {fastify}: ContextType) => getUsers(fastify),
     },
     posts: {
       type: new GraphQLList(PostType),
-      resolve: (_source, _args, context: FastifyInstance) => getPosts(context),
+      resolve: (_source, _args, {fastify}: ContextType) => getPosts(fastify),
     },
     profiles: {
       type: new GraphQLList(ProfileType),
-      resolve: (_source, _args, context: FastifyInstance) => getProfiles(context),
+      resolve: (_source, _args, {fastify}: ContextType) => getProfiles(fastify),
     },
     memberTypes: {
       type: new GraphQLList(MemberTypeType),
-      resolve: (_source, _args, context: FastifyInstance) => getMemberTypes(context),
+      resolve: (_source, _args, {fastify}: ContextType) => getMemberTypes(fastify),
     },
     allDataAboutUsers: {
       type: new GraphQLList(AllDataAboutUserType),
-      resolve: (_source, _args, context: FastifyInstance) => getAllDataAboutUsers(context),
+      resolve: (_source, _args, context: ContextType) => getAllDataAboutUsers(context),
     },
     allDataAboutUser: {
       type: AllDataAboutUserType,
@@ -82,7 +82,7 @@ export const queryType = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve: (_source, { id }, context: FastifyInstance) => getAllDataAboutUser(id, context),
+      resolve: (_source, { id }, context: ContextType) => getAllDataAboutUser(id, context),
     }
   }),
 });

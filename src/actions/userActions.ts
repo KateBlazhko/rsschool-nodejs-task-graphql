@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify"
+import { ContextType } from "../routes/graphql"
 import { MemberTypeEntity } from "../utils/DB/entities/DBMemberTypes"
 import { PostEntity } from "../utils/DB/entities/DBPosts"
 import { ProfileEntity } from "../utils/DB/entities/DBProfiles"
@@ -21,30 +22,43 @@ export const getUsers = async (context: FastifyInstance): Promise<UserEntity[]> 
   return await context.db.users.findMany()
 }
 
-const gatherAllDataAboutUsers = async (user: UserEntity, context: FastifyInstance): Promise<AllDataAboutUserType> => {
-  const profile = await context.db.profiles.findOne({key: 'userId', equals: user.id})
+const gatherAllDataAboutUser = async (user: UserEntity, {
+  fastify, userSubscribedToLoader, usersLoader, memberTypesLoader
+}: ContextType): Promise<AllDataAboutUserType> => {
+  // const userSubscribedToLoader = createUserSubscribedToLoader(context)
+  // const userLoader = createUserLoader(context)
+
+  const profile = await fastify.db.profiles.findOne({key: 'userId', equals: user.id})
+  const memberType = profile && await memberTypesLoader.load(profile?.memberTypeId)
 
   const subscribedToUserIdsExt: UserExtantion[] = await Promise.all(user.subscribedToUserIds.map(async (id) => {
-    const user = await getUserById(id, context)
-    const userSubscribedTo = await context.db.users.findMany({key: 'subscribedToUserIds', inArray: user.id})
+    const user = await usersLoader.load(id)
+    // const user = await getUserById(id, context)
+    
+    const userSubscribedTo = await userSubscribedToLoader.load(user.id)
+    // const userSubscribedTo = await context.db.users.findMany({key: 'subscribedToUserIds', inArray: user.id})
     
     return {
       ...user,
       subscribedToUser: await Promise.all(user.subscribedToUserIds.map(async (id) => {
-        return await getUserById(id, context)
+        return await usersLoader.load(id)
+        // return await getUserById(id, context)
       })),
       userSubscribedTo
     }
   }))
 
-  const userSubscribedTo = await context.db.users.findMany({key: 'subscribedToUserIds', inArray: user.id})
+  const userSubscribedTo = await userSubscribedToLoader.load(user.id)
+  // const userSubscribedTo = await context.db.users.findMany({key: 'subscribedToUserIds', inArray: user.id})
   const userSubscribedToExt: UserExtantion[] = await Promise.all(userSubscribedTo.map(async (user) => {
-    const userSubscribedTo = await context.db.users.findMany({key: 'subscribedToUserIds', inArray: user.id})
+    const userSubscribedTo = await userSubscribedToLoader.load(user.id)
+    // const userSubscribedTo = await context.db.users.findMany({key: 'subscribedToUserIds', inArray: user.id})
     
     return {
       ...user,
       subscribedToUser: await Promise.all(user.subscribedToUserIds.map(async (id) => {
-        return await getUserById(id, context)
+        return await usersLoader.load(id)
+        // return await getUserById(id, context)
       })),
       userSubscribedTo
     }
@@ -53,23 +67,29 @@ const gatherAllDataAboutUsers = async (user: UserEntity, context: FastifyInstanc
   return {
     ...user,
     subscribedToUser: subscribedToUserIdsExt,
-    posts: await context.db.posts.findMany({key: 'userId', equals: user.id}),
+    posts: await fastify.db.posts.findMany({key: 'userId', equals: user.id}),
     profile,
-    memberType: profile ? await context.db.memberTypes.findOne({key: 'id', equals: profile?.memberTypeId}) : null,
+    memberType: memberType ? memberType: null,
     userSubscribedTo: userSubscribedToExt
   }
 }
 
-export const getAllDataAboutUsers = async (context: FastifyInstance): Promise<AllDataAboutUserType[]> => {
-  const users = await context.db.users.findMany()
+export const getAllDataAboutUsers = async (context: ContextType): Promise<AllDataAboutUserType[]> => {
+  const users = await context.fastify.db.users.findMany()
   return await Promise.all(users.map(async (user) => {
-    return await gatherAllDataAboutUsers(user, context)
+
+    context.usersLoader.prime(user.id, user)
+    await context.userSubscribedToLoader.load(user.id)
+
+    return await gatherAllDataAboutUser(user, context)
   }))
 }
 
-export const getAllDataAboutUser = async (id: string, context: FastifyInstance): Promise<AllDataAboutUserType> => {
-  const user = await getUserById(id, context)
-  return await gatherAllDataAboutUsers(user, context)
+export const getAllDataAboutUser = async (id: string, context: ContextType): Promise<AllDataAboutUserType> => {
+  // const user = await getUserById(id, context)
+  const user = await context.usersLoader.load(id)
+
+  return await gatherAllDataAboutUser(user, context)
 }
 
 export const getUserById = async (id: string, context: FastifyInstance): Promise<UserEntity> => {
