@@ -38,8 +38,11 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
 
           return await graphql({schema, source: request.body.query, contextValue: {fastify, ...loaders}, variableValues: request.body.variables})  
         }
-
-        throw fastify.httpErrors.badRequest('Error: maximum operation depth of 6')
+        
+        return {
+          data: null,
+          errors: resultValidate
+        }
       }
 
       if (request.body.mutation) {
