@@ -3,8 +3,8 @@ import { ContextType } from ".";
 import { getMemberTypes } from "../../actions/memberTypeAction";
 import { getPosts } from "../../actions/postActions";
 import { getProfiles } from "../../actions/profileActons";
-import { getAllDataAboutUser, getAllDataAboutUsers, getUsers } from "../../actions/userActions";
-import { AllDataAboutUserType, MemberTypeType, PostType, ProfileType, UserType } from "./model";
+import { getAllDataAboutUser, getAllDataAboutUsers, getSubscribes, getUsers } from "../../actions/userActions";
+import { AllDataAboutUserType, MemberTypeType, PostType, ProfileType, UserType, UserWithUserSubscribedToType } from "./model";
 
 export const queryType = new GraphQLObjectType({
   name: 'Query',
@@ -83,6 +83,10 @@ export const queryType = new GraphQLObjectType({
         },
       },
       resolve: (_source, { id }, context: ContextType) => getAllDataAboutUser(id, context),
+    },
+    recursionSubscribes: {
+      type: new GraphQLList(UserWithUserSubscribedToType),
+      resolve: (_source, _, context: ContextType) => getSubscribes(context),
     }
   }),
 });

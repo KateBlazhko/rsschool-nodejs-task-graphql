@@ -31,11 +31,15 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
 
       if (request.body.query) {
         const documentAST = parse(request.body.query)
-        validate(schema, documentAST, [ depthLimit(10) ])
+        const resultValidate = validate(schema, documentAST, [ depthLimit(6) ])
 
-        const loaders = createLoaders(fastify)
+        if (resultValidate.length === 0) {
+          const loaders = createLoaders(fastify)
 
-        return await graphql({schema, source: request.body.query, contextValue: {fastify, ...loaders}, variableValues: request.body.variables})
+          return await graphql({schema, source: request.body.query, contextValue: {fastify, ...loaders}, variableValues: request.body.variables})  
+        }
+
+        throw fastify.httpErrors.badRequest('Error: maximum operation depth of 6')
       }
 
       if (request.body.mutation) {

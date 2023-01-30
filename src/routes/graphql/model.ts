@@ -25,6 +25,22 @@ export const UserType = new GraphQLObjectType({
   }),
 });
 
+export const UserWithUserSubscribedToType:GraphQLObjectType<any, any> = new GraphQLObjectType({
+  name: 'UserWithUserSubscribedTo',
+  fields: () => ({
+    id: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
+    ...userDTO,
+    subscribedToUserIds: {
+      type: new GraphQLList(GraphQLString),
+    },
+    userSubscribedTo: {
+      type: new GraphQLList(UserWithUserSubscribedToType)
+    },
+  }),
+});
+
 export const UserTypeExt = new GraphQLObjectType({
   name: 'UserExt',
   fields: () => ({

@@ -10,6 +10,10 @@ type UserExtantion = UserEntity & {
   subscribedToUser: UserEntity[]
 }
 
+type UserWithSubscribesType = UserEntity & {
+  userSubscribedTo?: UserWithSubscribesType[]
+}
+
 type AllDataAboutUserType = UserEntity & {
   subscribedToUser: UserExtantion[],
   posts: PostEntity[];
@@ -162,4 +166,31 @@ export const updateUser = async (id: string, userDTO: ChangeUserDTO, context: Fa
   if (!founded) throw context.httpErrors.badRequest()
 
   return await context.db.users.change(id, userDTO)
+}
+
+const MAXDEPTH = 6
+export const getSubscribes = async (context: ContextType) => {
+  const users = await context.fastify.db.users.findMany()
+  users.forEach((user) => context.usersLoader.prime(user.id, user))
+
+  const result =  await gatherSubscribes(context, users)
+  console.log(result)
+  return result
+}
+
+export const gatherSubscribes = async (context: ContextType, users: UserEntity[], i: number = 0): Promise<UserWithSubscribesType[]> => {
+  if (i > MAXDEPTH) {
+    return users
+  }
+
+  return await Promise.all(users.map(async (user) => {
+
+    const userSubscribedTo = await context.userSubscribedToLoader.load(user.id)
+
+    return {
+      ...user,
+      userSubscribedTo: await gatherSubscribes(context, userSubscribedTo, i++)
+    }
+  }))
+
 }
