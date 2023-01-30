@@ -50,10 +50,17 @@ const batchGetProfiles = async (ids: readonly string[], context: FastifyInstance
   const profiles = await getProfiles(context)
 
   const dataMap: Record<string, UserEntity[]> = profiles.reduce((acc, profile) => {
-    return {
-      ...acc,
-      [profile.id]: profile
-    };
+    if (ids.includes(profile.id)) {
+      return {
+        ...acc,
+        [profile.id]: profile
+      };
+    } else {
+      return {
+        ...acc,
+        [profile.userId]: profile
+      };
+    }
   }, {});
 
   return ids.map((id) => dataMap[id]);
@@ -63,10 +70,17 @@ const batchGetPosts = async (ids: readonly string[], context: FastifyInstance) =
   const posts = await Promise.all(ids.map(async (id) => await getPostById(id, context)))
 
   const dataMap: Record<string, UserEntity[]> = posts.reduce((acc, post) => {
-    return {
-      ...acc,
-      [post.id]: post
-    };
+    if (ids.includes(post.id)) {
+      return {
+        ...acc,
+        [post.id]: post
+      };
+    } else {
+      return {
+        ...acc,
+        [post.userId]: post
+      };
+    }
   }, {});
 
   return ids.map((id) => dataMap[id]);
